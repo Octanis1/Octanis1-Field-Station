@@ -9,9 +9,10 @@ import socket
 import thread
 import time
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
-hostMQTT="iot.eclipse.org"
+UDP_IP = "localhost"
+UDP_PORT_SENDER = 44000
+UDP_PORT_RECIEVER = 43000 # the bridge send MQTT message to a the UDP Reciever
+hostMQTT="192.168.3.3"
 portMQTT=1883
 topicToPublishMQTT="topic"
 topicToSubscribeMQTT="topic"
@@ -22,10 +23,10 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def MQTT_to_UDP(client, userdata, msg):
-	global UDP_IP, UDP_PORT
+	global UDP_IP, UDP_PORT_RECIEVER
 	sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-	sock.sendto(msg.payload, (UDP_IP, UDP_PORT))
+	sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
 
 def UDP_to_MQTT(client,data):
 	global topicToPublishMQTT
@@ -33,6 +34,7 @@ def UDP_to_MQTT(client,data):
 
 """ the function which transform MQTT message into UDP message """
 def bridge_MQTT_to_UDP(name_thread,delay):
+	# I've tested and it works ! (use the script send_mqtt.sh and netcat to recieve the message)
 	client = mqtt.Client()
 	client.on_connect = on_connect
 	client.on_message = MQTT_to_UDP
@@ -42,13 +44,15 @@ def bridge_MQTT_to_UDP(name_thread,delay):
 
 """ the function which transform UDP message into MQTT message """
 def bridge_UDP_to_MQTT(name_thread,delay):
+	# I've tested and it works ! (use the script send_udp.sh and mosquitto_sub to recieve the message)
+	global UDP_IP, UDP_PORT_SENDER
 	client = mqtt.Client()
 	client.connect(hostMQTT, port=portMQTT)
 	sock = socket.socket(socket.AF_INET, # Internet
 		                 socket.SOCK_DGRAM) # UDP
-	sock.bind((UDP_IP, UDP_PORT))
+	sock.bind((UDP_IP, UDP_PORT_SENDER))
 	while True:
-		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+		data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
 		UDP_to_MQTT(client,data)
 		time.sleep(delay)
 
