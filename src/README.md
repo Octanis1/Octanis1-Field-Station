@@ -10,4 +10,3 @@ At the begin of the Python script, you can change the IP and the port of the dif
 # Test the bridge
 To test the bridge, you can use the scripts _send\_mqtt.sh_ and _send\_udp.sh_. You just need to change the parameters at the begin of each script.
 
-
