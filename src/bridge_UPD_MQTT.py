@@ -38,8 +38,8 @@ def MQTT_to_UDP(client, userdata, msg):
 	global UDP_IP, UDP_PORT_RECIEVER
 	sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-	#sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
-	sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
+	sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
+	#sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
 
 def UDP_to_MQTT(client,data):
 	global topicToPublishMQTT
@@ -52,8 +52,8 @@ def bridge_MQTT_to_UDP(name_thread,delay):
 	client.on_connect = on_connect
 	client.on_message = MQTT_to_UDP
 	client.connect(hostMQTT, port=portMQTT)
-	client.loop_forever()
 	time.sleep(delay)
+	client.loop_forever()
 
 """ the function which transform UDP message into MQTT message """
 def bridge_UDP_to_MQTT(name_thread,delay):
@@ -66,14 +66,14 @@ def bridge_UDP_to_MQTT(name_thread,delay):
 	sock.bind((UDP_IP, UDP_PORT_SENDER))
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
-		#UDP_to_MQTT(client,decodeData(data))
-		UDP_to_MQTT(client,data)
+		UDP_to_MQTT(client,decodeData(data))
+		#UDP_to_MQTT(client,data)
 		time.sleep(delay)
 
 # Create the two threads
 try:
-   thread.start_new_thread(bridge_MQTT_to_UDP, ("MQTT to UDP", 10, ))
-   thread.start_new_thread(bridge_UDP_to_MQTT, ("UDP to MQTT", 10, ))
+   thread.start_new_thread(bridge_MQTT_to_UDP, ("MQTT to UDP", 100, ))
+   thread.start_new_thread(bridge_UDP_to_MQTT, ("UDP to MQTT", 100, ))
 except:
    print "Error: unable to start thread"
 
