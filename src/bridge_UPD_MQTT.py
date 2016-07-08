@@ -13,8 +13,8 @@ import base64
 import json
 
 UDP_IP = "localhost"
-UDP_PORT_SENDER = 44000
-UDP_PORT_RECIEVER = 43000 # the bridge send MQTT message to a the UDP Reciever
+UDP_PORT_SENDER = 14555
+UDP_PORT_RECIEVER = 14550 # the bridge send MQTT message to a the UDP Reciever
 hostMQTT="localhost"
 portMQTT=1883
 topicToPublishMQTT="application/70b3d57ed0000172/node/f03d291000000046/tx"
