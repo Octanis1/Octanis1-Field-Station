@@ -12,10 +12,10 @@ import time
 UDP_IP = "localhost"
 UDP_PORT_SENDER = 44000
 UDP_PORT_RECIEVER = 43000 # the bridge send MQTT message to a the UDP Reciever
-hostMQTT="192.168.3.3"
+hostMQTT="localhost"
 portMQTT=1883
-topicToPublishMQTT="topic"
-topicToSubscribeMQTT="topic"
+topicToPublishMQTT="application/70b3d57ed0000172/node/f03d291000000046/tx"
+topicToSubscribeMQTT="application/70b3d57ed0000172/node/+/rx"
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
