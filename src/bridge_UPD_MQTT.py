@@ -12,6 +12,7 @@ import thread
 import time
 import base64
 import json
+import ast
 
 UDP_IP = "localhost"
 UDP_PORT_SENDER = 14555
@@ -25,7 +26,7 @@ def decodeBase64(data):
 	return base64.b64decode(data)
 
 def decodeData(strJSON):
-	tmp=strJSON	
+	tmp=ast.literal_eval(str(strJSON))	
 	tmp['data']=decodeBase64(tmp['data'])
 	return tmp
 
@@ -38,25 +39,26 @@ def MQTT_to_UDP(client, userdata, msg):
 	global UDP_IP, UDP_PORT_RECIEVER
 	sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-	sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
-	#sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
+	#sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
+	sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
 
 def UDP_to_MQTT(client,data):
 	global topicToPublishMQTT
 	(result,mid)=client.publish(topicToPublishMQTT,data)
 
 """ the function which transform MQTT message into UDP message """
-def bridge_MQTT_to_UDP(name_thread,delay):
+"""def bridge_MQTT_to_UDP(name_thread,delay):
 	# I've tested and it works ! (use the script send_mqtt.sh and netcat to recieve the message)
 	client = mqtt.Client()
 	client.on_connect = on_connect
 	client.on_message = MQTT_to_UDP
 	client.connect(hostMQTT, port=portMQTT)
-	time.sleep(delay)
 	client.loop_forever()
+	time.sleep(delay)"""
 
 """ the function which transform UDP message into MQTT message """
-def bridge_UDP_to_MQTT(name_thread,delay):
+
+"""def bridge_UDP_to_MQTT(name_thread,delay):
 	# I've tested and it works ! (use the script send_udp.sh and mosquitto_sub to recieve the message)
 	global UDP_IP, UDP_PORT_SENDER
 	client = mqtt.Client()
@@ -66,16 +68,35 @@ def bridge_UDP_to_MQTT(name_thread,delay):
 	sock.bind((UDP_IP, UDP_PORT_SENDER))
 	while True:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
-		UDP_to_MQTT(client,decodeData(data))
-		#UDP_to_MQTT(client,data)
-		time.sleep(delay)
+		#UDP_to_MQTT(client,decodeData(data))
+		UDP_to_MQTT(client,data)
+		time.sleep(delay)"""
+
+def callback_UDP_to_MQTT(sock,client,data):
+	data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
+	#UDP_to_MQTT(client,decodeData(data))
+	UDP_to_MQTT(client,data)
 
 # Create the two threads
 try:
-   thread.start_new_thread(bridge_MQTT_to_UDP, ("MQTT to UDP", 100, ))
-   thread.start_new_thread(bridge_UDP_to_MQTT, ("UDP to MQTT", 100, ))
+	client = mqtt.Client()
+	client.on_connect = on_connect
+	client.on_message = MQTT_to_UDP
+	client.connect(hostMQTT, port=portMQTT)
+	client.loop_forever()
+
+	client = mqtt.Client()
+	client.connect(hostMQTT, port=portMQTT)
+	sock = socket.socket(socket.AF_INET, # Internet
+		                 socket.SOCK_DGRAM) # UDP
+	sock.bind((UDP_IP, UDP_PORT_SENDER))
+	while 1:
+		data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
+		#UDP_to_MQTT(client,decodeData(data))
+		UDP_to_MQTT(sock,client,data)
+		time.sleep(20)
+		pass
 except:
    print "Error: unable to start thread"
 
-while 1:
-   pass
+
