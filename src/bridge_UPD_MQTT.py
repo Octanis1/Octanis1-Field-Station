@@ -28,7 +28,8 @@ def decodeBase64(data):
 def decodeData(strJSON):
 	tmp=ast.literal_eval(str(strJSON))	
 	tmp['data']=decodeBase64(tmp['data'])
-	return tmp
+	#resultat="{\"devEUI\":\""+ str(tmp['devEUI'])  +"\",\"fPort\":"+ str(tmp['fPort']) +",\"gatewayCount\":" + str(tmp['gatewayCount']) +",\"rssi\":" + str(tmp['rssi']) +",\"data\":\""+ str(tmp['data'])  + "\"}"
+	return str(tmp['data'])
 
 # The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -39,8 +40,8 @@ def MQTT_to_UDP(client, userdata, msg):
 	global UDP_IP, UDP_PORT_RECIEVER
 	sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
-	#sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
-	sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
+	sock.sendto(decodeData(msg.payload), (UDP_IP, UDP_PORT_RECIEVER))
+	#sock.sendto(msg.payload, (UDP_IP, UDP_PORT_RECIEVER))
 
 def UDP_to_MQTT(client,data):
 	global topicToPublishMQTT
@@ -74,8 +75,8 @@ def UDP_to_MQTT(client,data):
 
 def callback_UDP_to_MQTT(sock,client,data):
 	data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
-	#UDP_to_MQTT(client,decodeData(data))
-	UDP_to_MQTT(client,data)
+	UDP_to_MQTT(client,decodeData(data))
+	#UDP_to_MQTT(client,data)
 
 # Create the two threads
 try:
@@ -92,7 +93,7 @@ try:
 	sock.bind((UDP_IP, UDP_PORT_SENDER))
 	while 1:
 		data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
-		#UDP_to_MQTT(client,decodeData(data))
+		#UDP_to_MQTT(sock,client,decodeData(data))
 		UDP_to_MQTT(sock,client,data)
 		time.sleep(20)
 		pass
