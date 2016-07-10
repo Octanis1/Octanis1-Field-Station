@@ -14,7 +14,7 @@ import base64
 import json
 import ast
 
-UDP_IP = "localhost"
+UDP_IP = "192.168.2.1"
 UDP_PORT_SENDER = 14555
 UDP_PORT_RECIEVER = 14550 # the bridge send MQTT message to a the UDP Reciever
 hostMQTT="localhost"
