@@ -3,7 +3,6 @@
 """
         Installation of paho : pip install paho-mqtt
         Sorry, the name is ..._UPD_... instead of ..._UDP_...
-        line 41 and 69 : there are the two lines we need to decode base64 in the comments
 """
 from pymavlink.dialects.v10 import common as mavlink
 import paho.mqtt.client as mqtt
@@ -46,6 +45,21 @@ def gen_heartbeat_msg_str():
    
    return heartbeat_msg_str
 
+# Function definition is here
+def gen_radio_status_msg_str():
+   # create a mavlink instance, which will do IO on file object 'f'
+   mav = mavlink.MAVLink(f, 24, 1)
+   #radio_status_encode(rssi, remrssi, txbuf, noise, remnoise, rxerrors, fixed)
+   m = mav.radio_status_encode(99,99,3,0,0,0,0)
+   m.pack(mav)
+
+   # get the encoded message as a buffer
+   b = m.get_msgbuf()
+   radio_status_str = base64.b64encode(b)
+   # the devEUI is false. We have to modify it if we need the good one.
+   radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
+   
+   return radio_status_msg_str
 
 
 
@@ -55,6 +69,7 @@ mqttc.loop_start()
 
 while 1:
     (result,mid)=mqttc.publish(publishtopicMQTT, gen_heartbeat_msg_str())
+	(result,mid)=mqttc.publish(publishtopicMQTT, gen_radio_status_msg_str())
     time.sleep(1)
 
 mqttc.loop_stop()
