@@ -17,6 +17,7 @@ UDP_PORT_RECEIVER = 14550 # the bridge send MQTT message to a the UDP Reciever
 hostMQTT="localhost"
 portMQTT=1883
 publishtopicMQTT="application/70b3d57ed0000172/node/f03d291000000046/rx"
+radio_msg=""
 
 class fifo(object):
     def __init__(self):
@@ -71,9 +72,8 @@ def gen_radio_status_msg_str(client, userdata, msg):
    return radio_status_msg_str
 
 def publishInfo(client, userdata, msg):
-	gen_radio_status_msg_str(client, userdata, msg)
-	(result,mid)=client.publish(publishtopicMQTT, gen_radio_status_msg_str())
-        (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
+	global radio_msg
+	radio_msg = msg
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -82,6 +82,8 @@ client.connect(hostMQTT, port=portMQTT)
 client.loop_forever()
 
 while 1:
+    (result,mid)=client.publish(publishtopicMQTT, gen_radio_status_msg_str())
+    (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
     time.sleep(1)
 
 client.disconnect()
