@@ -1,5 +1,0 @@
-  File "status_reporter.py", line 76
-    (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
-                                                                         ^
-IndentationError: unindent does not match any outer indentation level
-python: can't open file 'bridge.py.py': [Errno 2] No such file or directory
