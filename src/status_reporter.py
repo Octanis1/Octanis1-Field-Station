@@ -18,6 +18,7 @@ hostMQTT="localhost"
 portMQTT=1883
 publishtopicMQTT="application/70b3d57ed0000172/node/f03d291000000046/rx"
 radio_msg=""
+ancien="0"
 
 class fifo(object):
     def __init__(self):
@@ -55,25 +56,30 @@ def gen_heartbeat_msg_str():
 
 # RADIO_STATUS mavlink packet generator
 def gen_radio_status_msg_str():
-	global radio_msg
+	global radio_msg, ancien
 	if radio_msg != "":
 		rssi=extractData(radio_msg)
-		# create a mavlink instance, which will do IO on file object 'f'
-		mav = mavlink.MAVLink(f, 24, 1)
-		#radio_status_encode(rssi, remrssi, txbuf, noise, remnoise, rxerrors, fixed)
-		m = mav.radio_status_encode(rssi,rssi,9,0,0,0,9)
-		m.pack(mav)
+		if rssi < 0:
+			rssi=-rssi
+			# create a mavlink instance, which will do IO on file object 'f'
+			mav = mavlink.MAVLink(f, 24, 1)
+			#radio_status_encode(rssi, remrssi, txbuf, noise, remnoise, rxerrors, fixed)
+			m = mav.radio_status_encode(rssi,0,9,0,0,0,9)
+			m.pack(mav)
 
-		# get the encoded message as a buffer
-		b = m.get_msgbuf()
+			# get the encoded message as a buffer
+			b = m.get_msgbuf()
 		
-		radio_status_str = base64.b64encode(b)
-		# the devEUI is false. We have to modify it if we need the good one.
-		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
-
-		return radio_status_msg_str
+			radio_status_str = base64.b64encode(b)
+			# the devEUI is false. We have to modify it if we need the good one.
+			radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
+			ancien=str(radio_status_str)
+			return radio_status_msg_str
+		else:
+			radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ancien+"\"}"
+			return radio_status_msg_str
 	else:
-		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\"\"}"
+		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ancien+"\"}"
 		return radio_status_msg_str
 
 def publishInfo(client, userdata, msg):
