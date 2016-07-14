@@ -54,36 +54,41 @@ def gen_heartbeat_msg_str():
 
 
 # RADIO_STATUS mavlink packet generator
-def gen_radio_status_msg_str(client, userdata, msg):
-   rssi=extractData(msg)
-   # create a mavlink instance, which will do IO on file object 'f'
-   mav = mavlink.MAVLink(f, 24, 1)
-   #radio_status_encode(rssi, remrssi, txbuf, noise, remnoise, rxerrors, fixed)
-   m = mav.radio_status_encode(rssi,rssi,9,0,0,0,9)
-   m.pack(mav)
+def gen_radio_status_msg_str():
+   global radio_msg
+   if radio_msg != "":
+		rssi=extractData(radio_msg)
+		# create a mavlink instance, which will do IO on file object 'f'
+		mav = mavlink.MAVLink(f, 24, 1)
+		#radio_status_encode(rssi, remrssi, txbuf, noise, remnoise, rxerrors, fixed)
+		m = mav.radio_status_encode(rssi,rssi,9,0,0,0,9)
+		m.pack(mav)
 
-   # get the encoded message as a buffer
-   b = m.get_msgbuf()
-   
-   radio_status_str = base64.b64encode(b)
-   # the devEUI is false. We have to modify it if we need the good one.
-   radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
+		# get the encoded message as a buffer
+		b = m.get_msgbuf()
+		
+		radio_status_str = base64.b64encode(b)
+		# the devEUI is false. We have to modify it if we need the good one.
+		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
 
-   return radio_status_msg_str
+   	return radio_status_msg_str
+	else:
+		return 0
 
 def publishInfo(client, userdata, msg):
 	global radio_msg
-	radio_msg = msg
+	radio_msg = msg.payload
 
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = publishInfo
 client.connect(hostMQTT, port=portMQTT)
-client.loop_forever()
+client.loop_start()
 
 while 1:
     (result,mid)=client.publish(publishtopicMQTT, gen_radio_status_msg_str())
     (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
     time.sleep(1)
 
+client.loop_stop()
 client.disconnect()
