@@ -3,7 +3,7 @@
 """
 	Installation of paho : pip install paho-mqtt
 """
-
+import sys
 import paho.mqtt.client as mqtt
 import socket
 import thread
@@ -48,6 +48,7 @@ try:
 	client.connect(hostMQTT, port=portMQTT)
 	client.loop_forever()
 except:
-   print "Error: unable to start thread"
-
+    print("Unexpected error 0:", sys.exc_info()[0])
+    print("Unexpected error 1:", sys.exc_info()[1])
+    print("Unexpected error 2:", sys.exc_info()[2])
 
