@@ -55,8 +55,8 @@ def gen_heartbeat_msg_str():
 
 # RADIO_STATUS mavlink packet generator
 def gen_radio_status_msg_str():
-   global radio_msg
-   if radio_msg != "":
+	global radio_msg
+	if radio_msg != "":
 		rssi=extractData(radio_msg)
 		# create a mavlink instance, which will do IO on file object 'f'
 		mav = mavlink.MAVLink(f, 24, 1)
@@ -71,9 +71,10 @@ def gen_radio_status_msg_str():
 		# the devEUI is false. We have to modify it if we need the good one.
 		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(radio_status_str)  + "\"}"
 
-   	return radio_status_msg_str
+		return radio_status_msg_str
 	else:
-		return 0
+		radio_status_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\"\"}"
+		return radio_status_msg_str
 
 def publishInfo(client, userdata, msg):
 	global radio_msg
