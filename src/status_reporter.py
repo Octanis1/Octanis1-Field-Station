@@ -35,7 +35,7 @@ def extractData(strJSON):
 	return rssi
 
 def on_connect(client, userdata, flags, rc):
-    client.subscribe(topicToSubscribeMQTT)
+    client.subscribe(publishtopicMQTT)
 
 # HEARTBEAT mavlink packet generator
 def gen_heartbeat_msg_str():
@@ -73,7 +73,7 @@ def gen_radio_status_msg_str(client, userdata, msg):
 def publishInfo(client, userdata, msg):
 	gen_radio_status_msg_str(client, userdata, msg)
 	(result,mid)=client.publish(publishtopicMQTT, gen_radio_status_msg_str())
-    (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
+        (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
 
 client = mqtt.Client()
 client.on_connect = on_connect
