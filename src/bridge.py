@@ -54,7 +54,8 @@ def UDP_to_MQTT(client,data):
 
 def callback_UDP_to_MQTT(sock,client,data):
 	data, addr = sock.recvfrom(1024) # buffer size is 1024 byte
-	UDP_to_MQTT(client,decodeData(data))
+	print("data :"+str(data))
+	UDP_to_MQTT(client,encodeData(data))
 
 # Create the two threads
 try:
