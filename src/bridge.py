@@ -20,6 +20,13 @@ portMQTT=1883
 topicToPublishMQTT="application/70b3d57ed0000172/node/f03d291000000046/tx"
 topicToSubscribeMQTT="application/70b3d57ed0000172/node/+/rx"
 
+def encodeBase64(data):
+	return base64.b64encode(data)
+
+def encodeData(binary):
+	data64=encodeBase64(binary)
+	return "{\"reference\":\"mavlink\",\"devEUI\":\"f03d291000000046\",\"fPort\":1,\"confirmed\": false,\"data\":\""+str(data64)+"\"}"
+
 def decodeBase64(data):
 	return base64.b64decode(data)
 
