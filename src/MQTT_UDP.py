@@ -42,6 +42,7 @@ def MQTT_to_UDP(client, userdata, msg):
 
 # Create the two threads
 try:
+	print("start MQTT_UDP")
 	client = mqtt.Client()
 	client.on_connect = on_connect
 	client.on_message = MQTT_to_UDP

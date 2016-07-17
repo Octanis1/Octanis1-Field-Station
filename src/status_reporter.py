@@ -18,7 +18,7 @@ hostMQTT="localhost"
 portMQTT=1883
 publishtopicMQTT="application/70b3d57ed0000172/node/f03d291000000046/rx"
 radio_msg=""
-ancien="0"
+ancien="/gkAGAEAAAAAAAYI3AEDdGc="
 
 class fifo(object):
     def __init__(self):
@@ -43,7 +43,7 @@ def on_connect(client, userdata, flags, rc):
 def gen_heartbeat_msg_str():
    # create a mavlink instance, which will do IO on file object 'f'
    mav = mavlink.MAVLink(f, 24, 1)
-   m = mav.heartbeat_encode(0,8,4,3,2)
+   m = mav.heartbeat_encode(6,8,220,0,1)
    m.pack(mav)
 
    # get the encoded message as a buffer
@@ -52,6 +52,10 @@ def gen_heartbeat_msg_str():
    heartbeat_msg_str="{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"gatewayCount\":99,\"rssi\":99,\"data\":\""+ str(heartbeat_str)  + "\"}"
    
    return heartbeat_msg_str
+
+
+
+
 
 
 # RADIO_STATUS mavlink packet generator
@@ -86,6 +90,7 @@ def publishInfo(client, userdata, msg):
 	global radio_msg
 	radio_msg = msg.payload
 
+print("start status_reporter")
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = publishInfo
@@ -95,7 +100,7 @@ client.loop_start()
 while 1:
     (result,mid)=client.publish(publishtopicMQTT, gen_radio_status_msg_str())
     (result,mid)=client.publish(publishtopicMQTT, gen_heartbeat_msg_str())
-    time.sleep(1)
+    time.sleep(0.5)
 
 client.loop_stop()
 client.disconnect()
