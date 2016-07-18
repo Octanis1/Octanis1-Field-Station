@@ -57,17 +57,24 @@ def isGPS_ready(message):
    else:
       return False
 
-def publishMQTT_ready(client):
-   publishMQTT_gps_raw_int(client,4)
+def extract_observation_time(message):
+   if(len(message)>20):
+      hexString=[str(a[2])+str(a[3]) for a in message] #because a='\xf0' avec f et 0 nos caractères hexa
+      return int(hexString,16)
+   else:
+      return 0
 
-def publishMQTT_not_ready(client):
-   publishMQTT_gps_raw_int(client,0)
+def publishMQTT_ready(client,message):
+   publishMQTT_gps_raw_int(client,4, extract_observation_time(message))
 
-def publishMQTT_gps_raw_int(client,fix_type):
+def publishMQTT_not_ready(client,message):
+   publishMQTT_gps_raw_int(client,0, extract_observation_time(message))
+
+def publishMQTT_gps_raw_int(client,fix_type,obs_time=0):
    global topicToPublishMQTT
    mav = mavlink.MAVLink(f, 24, 1)
 	#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
-   m = mav.gps_raw_int_encode(0,fix_type,0,0,0,0,0,0,65535,255)
+   m = mav.gps_raw_int_encode(obs_time,fix_type,0,0,0,0,0,0,65535,255)
    m.pack(mav)
    data = m.get_msgbuf()
    (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
@@ -79,7 +86,7 @@ def gps_ready(message):
    if(len(message)<49):
       return False
    else:
-      if(message[44]=='\x00' or message[45]=='\x00'):
+      if(message[43]=='\x00' or message[44]=='\x00'):
          return True
       else:
          return False
@@ -94,11 +101,11 @@ while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
    if(line[0] != '$'): # i.e we have a UBX message
-      line=[str(x)+":"+str(i) for (x,i) in enumerate(line)]
+      line=[str(i) for (x,i) in enumerate(line)]
       if(gps_ready(line)):
-         publishMQTT_ready(client)
+         publishMQTT_ready(client,line)
       else:
-         publishMQTT_not_ready(client)
+         publishMQTT_not_ready(client,line)
 	
 if(diffTime>timeMax):
    publishMQTT(client,False)
