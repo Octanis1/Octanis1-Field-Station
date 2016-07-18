@@ -88,7 +88,7 @@ def checkSum(message):
 def pollRequestGPS(serial_port):
    #ca, cb = checkSum(chr(1)+chr(59)+"40")
    #request=chr(181)+chr(98)+chr(1)+chr(59)+"40"+chr(ca)+chr(cb)
-   serial_port.write("B562013B00003CB5")
+   serial_port.write("\xB5\x62\x01\x3B\x00\x00\x3C\xB5")
 
 ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
@@ -99,10 +99,10 @@ diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
-   print(line)
+   if(line[0] != '$'):
+	   print(line)
    if isUBX(line):
       if isSRV_IN(line):
-         print(line)
          if isGPS_ready(line):
             #publish sur le MQTT que c'est pret
             publishMQTT(client,True)
