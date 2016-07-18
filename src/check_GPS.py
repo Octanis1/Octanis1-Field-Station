@@ -12,15 +12,30 @@ import sys
 
 hostMQTT="localhost"
 portMQTT=1883
-topicToSubscribeMQTT="application/70b3d57ed0000172/node/+/rx"
-timeMax = 5
+topicToPublishMQTT="application/70b3d57ed0000172/node/f03d291000000046/rx"
+timeMax = 50
+
+class fifo(object):
+    def __init__(self):
+        self.buf = []
+    def write(self, data):
+        self.buf += data
+        return len(data)
+    def read(self):
+        return self.buf.pop(0)
+  
+# we will use a fifo as an encode/decode buffer
+f = fifo()
+
+def encodeBase64(data):
+	return base64.b64encode(data)
 
 def encodeData(data):
 	data64=encodeBase64(data)
 	return "{\"reference\":\"mavlink\",\"devEUI\":\"f03d291000000046\",\"fPort\":1,\"confirmed\": false,\"data\":\""+str(data64)+"\"}"
 
 def isUBX(message):
-	if(len(message)>8)):
+	if(len(message)>8):
 		if(ord(message[0]) == 181 and ord(message[1]) == 98):
 			return True
 		else:
@@ -29,9 +44,9 @@ def isUBX(message):
 		return False
 
 def isSRV_IN(message):
-   if(ord(message[2]) == 1 and ord(message[3]) == 59:
+   if(ord(message[2]) == 1 and ord(message[3]) == 59):
 	   return True
-	else:
+   else:
 	   return False
 	
 def isGPS_ready(message):
@@ -41,20 +56,21 @@ def isGPS_ready(message):
       return False
 
 def publishMQTT(client,ready):
-	global topicToPublishMQTT
+   global topicToPublishMQTT
+   
    if(ready):
       mav = mavlink.MAVLink(f, 24, 1)
 		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
-      m = mav.gps_raw_int_encode(0,4,0,0,0,0,0,65535,255)
+      m = mav.gps_raw_int_encode(0,4,0,0,0,0,0,0,65535,255)
       m.pack(mav)
       data = m.get_msgbuf()
    else:
       mav = mavlink.MAVLink(f, 24, 1)
 		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
-      m = mav.gps_raw_int_encode(0,0,0,0,0,0,0,65535,255)
+      m = mav.gps_raw_int_encode(0,0,0,0,0,0,0,0,65535,255)
       m.pack(mav)
       data = m.get_msgbuf()
-	(result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
+      (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
 
 def checkSum(message):
    message=str(message)
@@ -62,25 +78,27 @@ def checkSum(message):
    for i in message:
       checkA += ord(i)
       checkB += checkA
-   return checkA, checkB
+   return checkA, checkB%256
 
 def pollRequestGPS(serial_port):
-   ca, cb = checkSum(char(1)+char(59)+"40")
-   request=char(181)+char(98)+char(1)+char(59)+"40"+char(ca)+char(cb)
+   ca, cb = checkSum(chr(1)+chr(59)+"40")
+   request=chr(181)+chr(98)+chr(1)+chr(59)+"40"+chr(ca)+chr(cb)
    serPrint = serial.Serial('/dev/ttyACM0')
-   serPrint.print(request)
+   serPrint.write(request)
 
 ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
 client.connect(hostMQTT, port=portMQTT)
-timeBegin=time.time
+timeBegin=time.time()
 pollRequestGPS('/dev/ttyACM0')
 diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
+   print(line)
    if isUBX(line):
       if isSRV_IN(line):
+         print(line)
          if isGPS_ready(line):
             #publish sur le MQTT que c'est pret
             publishMQTT(client,True)
