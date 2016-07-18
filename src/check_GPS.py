@@ -62,7 +62,11 @@ def checkSum(message):
    for i in message:
       checkA += ord(i)
       checkB += checkA
-   return checkA, checkB
+   checkA="{0:b}".format(checkA)
+   checkB="{0:b}".format(checkB)
+	checkA=checkA[-8:]
+   checkB=checkB[-8:]
+   return int(checkA,2), int(checkB,2)
 
 def pollRequestGPS(serial_port):
    ca, cb = checkSum(char(1)+char(59)+"40")
