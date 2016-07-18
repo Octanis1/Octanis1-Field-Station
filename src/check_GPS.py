@@ -57,39 +57,32 @@ def isGPS_ready(message):
    else:
       return False
 
-def publishMQTT(client,ready):
+def publishMQTT_ready(client):
+   publishMQTT_gps_raw_int(client,4)
+
+def publishMQTT_not_ready(client):
+   publishMQTT_gps_raw_int(client,0)
+
+def publishMQTT_gps_raw_int(client,fix_type):
    global topicToPublishMQTT
-
-   if(ready):
-      mav = mavlink.MAVLink(f, 24, 1)
-		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
-      m = mav.gps_raw_int_encode(0,4,0,0,0,0,0,0,65535,255)
-      m.pack(mav)
-      data = m.get_msgbuf()
-   else:
-      mav = mavlink.MAVLink(f, 24, 1)
-		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
-      m = mav.gps_raw_int_encode(0,0,0,0,0,0,0,0,65535,255)
-      m.pack(mav)
-      data = m.get_msgbuf()
-      (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
-
-def checkSum(message):
-   message=str(message)
-   checkA, checkB = 0, 0
-   for i in message:
-      checkA += ord(i)
-      checkB += checkA
-   checkA="{0:b}".format(checkA)
-   checkB="{0:b}".format(checkB)
-   checkA=checkA[-8:]
-   checkB=checkB[-8:]
-   return int(checkA,2), int(checkB,2)
+   mav = mavlink.MAVLink(f, 24, 1)
+	#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
+   m = mav.gps_raw_int_encode(0,fix_type,0,0,0,0,0,0,65535,255)
+   m.pack(mav)
+   data = m.get_msgbuf()
+   (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
 
 def pollRequestGPS(serial_port):
-   #ca, cb = checkSum(chr(1)+chr(59)+"40")
-   #request=chr(181)+chr(98)+chr(1)+chr(59)+"40"+chr(ca)+chr(cb)
    serial_port.write("\xB5\x62\x01\x3B\x00\x00\x3C\xB5")
+
+def gps_ready(message):
+   if(len(message)<49):
+      return False
+   else:
+      if(message[44]=='\x00' or message[45]=='\x00'):
+         return True
+      else:
+         return False
 
 ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
@@ -100,15 +93,12 @@ diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
-   if(line[0] != '$'):
+   if(line[0] != '$'): # i.e we have a UBX message
       line=[str(x)+":"+str(i) for (x,i) in enumerate(line)]
-      print(line)
-      print(line[47])     
-      """publishMQTT(client,True)
-         else:
-            #publish sur le MQTT que c'est pas pret
-            publishMQTT(client,False)
-         break"""
+      if(gps_ready(line)):
+         publishMQTT_ready(client)
+      else:
+         publishMQTT_not_ready(client)
 	
 if(diffTime>timeMax):
    publishMQTT(client,False)
