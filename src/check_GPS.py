@@ -51,6 +51,7 @@ def isSRV_IN(message):
 	   return False
 	
 def isGPS_ready(message):
+   print(len(message))
    if(ord(message[44])==0): # 44 because 6 of the header and 38 to have to good byte of the payload
       return True
    else:
@@ -100,17 +101,19 @@ while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
    if(line[0] != '$'):
-	   print(line)
-   if isUBX(line):
-      if isSRV_IN(line):
-         if isGPS_ready(line):
-            #publish sur le MQTT que c'est pret
-            publishMQTT(client,True)
+      line=[str(x)+":"+str(i) for (x,i) in enumerate(line)]
+      print(line)
+      print(line[47])     
+      """publishMQTT(client,True)
          else:
             #publish sur le MQTT que c'est pas pret
             publishMQTT(client,False)
-         break
+         break"""
 	
 if(diffTime>timeMax):
    publishMQTT(client,False)
    #publish sur le MQTT que c'est pas pret
+
+"""
+['0:\xb5', '1:b', '2:\x01', '3:;', '4:(', '5:\x00', '6:\x00', '7:\x00', '8:\x00', '9:\x00', '10:\x80', '11::', '12:$', '13:\x08', '14:\xc4', '15:\x0f', '16:\x00', '17:\x00', '18:\x00', '19:\x00', '20:\x00', '21:\x00', '22:\x00', '23:\x00', '24:\x00', '25:\x00', '26:\x00', '27:\x00', '28:\x00', '29:\x00', '30:\x00', '31:\x00', '32:\x00', '33:\x00', '34:\x00', '35:\xc2', '36:\x8b', '37:8', '38:\x00', '39:\x00', '40:\x00', '41:\x00', '42:\x00', '43:\x01', '44:\x00', '45:\x00', '46:\xa3', '47:s', '48:$', '49:G', '50:N', '51:R', '52:M', '53:C', '54:,', '55:1', '56:3', '57:5', '58:6', '59:1', '60:5', '61:.', '62:0', '63:0', '64:,', '65:V', '66:,', '67:,', '68:,', '69:,', '70:,', '71:,', '72:,', '73:1', '74:8', '75:0', '76:7', '77:1', '78:6', '79:,', '80:,', '81:,', '82:N', '83:,', '84:V', '85:*', '86:1', '87:5', '88:\r', '89:\n']
+"""
