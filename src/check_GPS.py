@@ -85,16 +85,15 @@ def checkSum(message):
    return int(checkA,2), int(checkB,2)
 
 def pollRequestGPS(serial_port):
-   ca, cb = checkSum(chr(1)+chr(59)+"40")
-   request=chr(181)+chr(98)+chr(1)+chr(59)+"40"+chr(ca)+chr(cb)
-   serPrint = serial.Serial('/dev/ttyACM0')
-   serPrint.write(request)
+   #ca, cb = checkSum(chr(1)+chr(59)+"40")
+   #request=chr(181)+chr(98)+chr(1)+chr(59)+"40"+chr(ca)+chr(cb)
+   serial_port.write("B562013B00003CB5")
 
 ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
 client.connect(hostMQTT, port=portMQTT)
 timeBegin=time.time()
-pollRequestGPS('/dev/ttyACM0')
+pollRequestGPS(ser)
 diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
