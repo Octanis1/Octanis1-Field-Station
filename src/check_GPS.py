@@ -12,7 +12,7 @@ import sys
 hostMQTT="localhost"
 portMQTT=1883
 topicToPublishMQTT="application/70b3d57ed0000172/node/f03d291000000046/rx"
-timeMax = 15
+timeMax = 50
 
 class fifo(object):
     def __init__(self):
@@ -46,9 +46,9 @@ def isUBX(message):
 
 def isSRV_IN(message):
    if(ord(message[2]) == 1 and ord(message[3]) == 59):
-      return True
+	   return True
    else:
-      return False
+	   return False
 	
 def isGPS_ready(message):
    if(ord(message[44])==0): # 44 because 6 of the header and 38 to have to good byte of the payload
@@ -58,6 +58,7 @@ def isGPS_ready(message):
 
 def publishMQTT(client,ready):
    global topicToPublishMQTT
+
    if(ready):
       mav = mavlink.MAVLink(f, 24, 1)
 		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
@@ -70,7 +71,7 @@ def publishMQTT(client,ready):
       m = mav.gps_raw_int_encode(0,0,0,0,0,0,0,0,65535,255)
       m.pack(mav)
       data = m.get_msgbuf()
-   (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
+      (result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
 
 def checkSum(message):
    message=str(message)
@@ -98,8 +99,10 @@ diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
    diffTime=time.time()-timeBegin
+   print(line)
    if isUBX(line):
       if isSRV_IN(line):
+         print(line)
          if isGPS_ready(line):
             #publish sur le MQTT que c'est pret
             publishMQTT(client,True)
