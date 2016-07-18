@@ -1,6 +1,5 @@
 import serial
 import time
-
 from pymavlink.dialects.v10 import common as mavlink
 import pymavlink.mavutil as mavutil
 import paho.mqtt.client as mqtt
@@ -26,6 +25,8 @@ class fifo(object):
   
 # we will use a fifo as an encode/decode buffer
 f = fifo()
+# create a mavlink instance, which will do IO on file object 'f'
+mav = mavlink.MAVLink(f)
 
 def encodeBase64(data):
 	return base64.b64encode(data)
@@ -57,7 +58,7 @@ def isGPS_ready(message):
 
 def publishMQTT(client,ready):
    global topicToPublishMQTT
-   
+
    if(ready):
       mav = mavlink.MAVLink(f, 24, 1)
 		#gps_raw_int_encode(usec, fix_type, lat, lon, alt, eph, epv, v, hdg)
@@ -78,7 +79,11 @@ def checkSum(message):
    for i in message:
       checkA += ord(i)
       checkB += checkA
-   return checkA, checkB%256
+   checkA="{0:b}".format(checkA)
+   checkB="{0:b}".format(checkB)
+   checkA=checkA[-8:]
+   checkB=checkB[-8:]
+   return int(checkA,2), int(checkB,2)
 
 def pollRequestGPS(serial_port):
    ca, cb = checkSum(chr(1)+chr(59)+"40")
