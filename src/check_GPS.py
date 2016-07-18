@@ -60,7 +60,7 @@ def isGPS_ready(message):
 def extract_observation_time(message):
    if(len(message)>20):
       print(message)
-      hexString=[str(a[2])+str(a[3]) for a in message] #because a=\xf0 avec f et 0 nos caracteres hexa
+      hexString= [str(a[2])+str(a[3]) if len(a)==4 else str(a) for a in message] #because a=\xf0 avec f et 0 nos caracteres hexa
       return int(hexString,16)
    else:
       return 0
