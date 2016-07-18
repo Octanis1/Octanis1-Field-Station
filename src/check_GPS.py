@@ -56,10 +56,25 @@ def publishMQTT(client,ready):
       data = m.get_msgbuf()
 	(result,mid)=client.publish(topicToPublishMQTT,encodeData(data))
 
+def checkSum(message):
+   message=str(message)
+   checkA, checkB = 0, 0
+   for i in message:
+      checkA += ord(i)
+      checkB += checkA
+   return checkA, checkB
+
+def pollRequestGPS(serial_port):
+   ca, cb = checkSum(char(1)+char(59)+"40")
+   request=char(181)+char(98)+char(1)+char(59)+"40"+char(ca)+char(cb)
+   serPrint = serial.Serial('/dev/ttyACM0')
+   serPrint.print(request)
+
 ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
 client.connect(hostMQTT, port=portMQTT)
 timeBegin=time.time
+pollRequestGPS('/dev/ttyACM0')
 diffTime=0
 while diffTime < timeMax:
    line=ser.readline()
