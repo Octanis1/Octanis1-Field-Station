@@ -5,6 +5,7 @@ import pymavlink.mavutil as mavutil
 import paho.mqtt.client as mqtt
 import socket
 import thread
+import base64
 import ast
 import sys 
 import binascii
@@ -27,6 +28,13 @@ class fifo(object):
 f = fifo()
 # create a mavlink instance, which will do IO on file object 'f'
 mav = mavlink.MAVLink(f)
+
+def encodeBase64(data):
+	return base64.b64encode(data)
+
+def encodeData(data):
+	data64=encodeBase64(data)
+	return "{\"reference\":\"mavlink\",\"devEUI\":\"f03d291000000046\",\"fPort\":1,\"confirmed\": false,\"data\":\""+str(data64)+"\"}"
 
 def extract_observation_time(message): 
    if(len(message)>20):
