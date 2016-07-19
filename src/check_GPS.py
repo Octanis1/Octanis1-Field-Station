@@ -8,6 +8,7 @@ import thread
 import base64
 import ast
 import sys 
+import binascii
 
 hostMQTT="localhost"
 portMQTT=1883
@@ -57,15 +58,15 @@ def isGPS_ready(message):
    else:
       return False
 
-def extract_observation_time(message):
-   return 0
-   """if(len(message)>20):
-      print(message)
-      hexString= [str(a[2])+str(a[3]) if len(a)==4 else str(a) for a in message] #because a=\xf0 avec f et 0 nos caracteres hexa
-      return int(hexString,16)
+def extract_observation_time(message): 
+   if(len(message)>20):
+      binString=bin(int(binascii.hexlify(message[14]+message[15]+message[16]+message[17]), 16))
+      obsTime=int(binString,2)
+      print(obsTime)
+      return obsTime
    else:
       return 0
-   """
+   
 def publishMQTT_ready(client,message):
    publishMQTT_gps_raw_int(client,4, extract_observation_time(message))
 
@@ -99,15 +100,20 @@ client.connect(hostMQTT, port=portMQTT)
 timeBegin=time.time()
 pollRequestGPS(ser)
 diffTime=0
-while diffTime < timeMax:
+nbrEssai=3
+while (diffTime < timeMax) and (nbrEssai>0):
    line=ser.readline()
    diffTime=time.time()-timeBegin
    if(line[0] != '$'): # i.e we have a UBX message
       line=[str(i) for (x,i) in enumerate(line)]
       if(gps_ready(line)):
          publishMQTT_ready(client,line)
+         break
       else:
          publishMQTT_not_ready(client,line)
+         pollRequestGPS(ser)
+         nbrEssai-=1
+         print("Not ready. We will do "+str(nbrEssai)+" other try")
 	
 if(diffTime>timeMax):
    publishMQTT(client,False)
