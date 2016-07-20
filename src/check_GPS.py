@@ -34,7 +34,7 @@ def encodeBase64(data):
 
 def encodeData(data):
 	data64=encodeBase64(data)
-	return "{\"reference\":\"mavlink\",\"devEUI\":\"f03d291000000046\",\"fPort\":1,\"confirmed\": false,\"data\":\""+str(data64)+"\"}"
+	return "{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"rssi\":99,\"gatewayCount\":99,\"data\":\""+str(data64)+"\"}"
 
 def extract_observation_time(message): 
    if(len(message)>20):
@@ -83,7 +83,7 @@ while 1:
    diffTime=time.time()-timeBegin
    if(diffTime>timeMax):
       # we wait 0.5 second, to avoid using 100% processor when the poll request always fail
-      time.sleep(0.5)
+      time.sleep(2)
       timeBegin=time.time()
       pollRequestGPS(ser)
 
@@ -97,7 +97,7 @@ while 1:
          publishMQTT_not_ready(client,line)
          print("Not ready")
          # we wait 1 second and next we will send another poll request (because diffTime > 1 >= timeMax)
-      time.sleep(0.5)
+      time.sleep(2)
 
 
 """

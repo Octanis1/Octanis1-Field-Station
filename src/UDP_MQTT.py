@@ -42,7 +42,7 @@ def encodeBase64(data):
 
 def encodeData(binary):
 	data64=encodeBase64(binary)
-	return "{\"reference\":\"mavlink\",\"devEUI\":\"f03d291000000046\",\"fPort\":1,\"confirmed\": false,\"data\":\""+str(data64)+"\"}"
+	return "{\"devEUI\":\"f03d291000000046\",\"fPort\":99,\"rssi\":99,\"gatewayCount\":99,\"data\":\""+str(data64)+"\"}"
 
 def UDP_to_MQTT(client,data):
 	global topicToPublishMQTT
