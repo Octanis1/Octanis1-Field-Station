@@ -44,7 +44,7 @@ def extract_observation_time(message):
       return obsTime
    else:
       return 0
-   
+
 def publishMQTT_ready(client,message):
    publishMQTT_gps_raw_int(client,4, extract_observation_time(message))
 
