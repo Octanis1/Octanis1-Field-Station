@@ -58,7 +58,7 @@ try:
 	
 	while True:
 		m = udp_connection.recv_match(blocking=True,type=msgId_whitelist)
-	   if(m != None):
+	        if(m != None):
 		   print("LoRa TX: msg_id %u, fields %s, len %u" % (m.get_msgId(), m.get_fieldnames(), len(m.get_msgbuf())))
 		   UDP_to_MQTT(client,encodeData(m.get_msgbuf()))
 	pass

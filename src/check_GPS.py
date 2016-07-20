@@ -43,6 +43,7 @@ def extract_observation_time(message):
       print(obsTime)
       return obsTime
    else:
+      print("format of the message is not correct")
       return 0
 
 def publishMQTT_ready(client,message):
@@ -67,7 +68,7 @@ def gps_ready(message):
    if(len(message)<49):
       return False
    else:
-      if(message[43]=='\x00' or message[44]=='\x00'):
+      if(message[43]=='\x00' and message[44]=='\x00'):
          return True
       else:
          return False
@@ -94,7 +95,6 @@ while 1:
          print("ready")
       else:
          publishMQTT_not_ready(client,line)
-         pollRequestGPS(ser)
          print("Not ready")
          # we wait 1 second and next we will send another poll request (because diffTime > 1 >= timeMax)
       time.sleep(0.5)
