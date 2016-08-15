@@ -73,7 +73,7 @@ def gps_ready(message):
       else:
          return False
 
-ser = serial.Serial('/dev/ttyUSB0')
+ser = serial.Serial('/dev/ttyACM0')
 client = mqtt.Client()
 client.connect(hostMQTT, port=portMQTT)
 timeBegin=time.time()
