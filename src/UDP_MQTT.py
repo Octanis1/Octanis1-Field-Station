@@ -51,16 +51,16 @@ def UDP_to_MQTT(client,data):
 #open udp port and mqtt client
 try:
 	while True:
-      client = mqtt.Client()
+      	   client = mqtt.Client()
 	   client.connect(hostMQTT, port=portMQTT)
 	   udp_connection = mavutil.mavlink_connection('udp:'+UDP_IP+':'+UDP_PORT_SENDER) 
 	
 	   print("Parsing MAVLink message from UDP...")
-		m = udp_connection.recv_match(blocking=True,type=msgId_whitelist)
+	   m = udp_connection.recv_match(blocking=True,type=msgId_whitelist)
 	   if(m != None):
 		  print("LoRa TX: msg_id %u, fields %s, len %u" % (m.get_msgId(), m.get_fieldnames(), len(m.get_msgbuf())))
 		  UDP_to_MQTT(client,encodeData(m.get_msgbuf()))
-      time.sleep(0.010) # 10 ms
+           time.sleep(0.010) # 10 ms
 	pass
 except:
     print("Unexpected error 0:", sys.exc_info()[0])
