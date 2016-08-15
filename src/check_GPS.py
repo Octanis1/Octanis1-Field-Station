@@ -45,7 +45,7 @@ def extract_observation_time(message):
    else:
       print("format of the message is not correct")
       return 0
-   
+
 def publishMQTT_ready(client,message):
    publishMQTT_gps_raw_int(client,4, extract_observation_time(message))
 
@@ -83,7 +83,7 @@ while 1:
    diffTime=time.time()-timeBegin
    if(diffTime>timeMax):
       # we wait 0.5 second, to avoid using 100% processor when the poll request always fail
-      time.sleep(0.5)
+      time.sleep(2)
       timeBegin=time.time()
       pollRequestGPS(ser)
 
