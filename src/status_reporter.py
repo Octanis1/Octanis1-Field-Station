@@ -89,7 +89,7 @@ def gen_radio_status_msg_str():
 def publishInfo(client, userdata, msg):
 	global radio_msg
 	radio_msg = msg.payload
-
+        print(radio_msg)
 print("start status_reporter")
 client = mqtt.Client()
 client.on_connect = on_connect
